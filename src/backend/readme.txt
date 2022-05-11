@@ -1,0 +1,22 @@
+Requirements
+- Azure CLI
+- RBAC Contributor role in API Management
+- Logged into azure (az login)
+
+
+1. Use an existing API Management service
+
+2. Create API in API Management  
+    az deployment group create -g [RESOURCE_GROUP] -f main.bicep -p apim_name=[APIM_SERVICENAME]
+
+3. Create an application at https://www.dropbox.com/developers using https://logic-eastus2euap-001.consent.azure-apihub.net/redirect as redirecturl 
+
+3. Create Authorizations configuration in API Management
+    .\authorizations.ps1 -Subscription [SUBSCRIPTION_ID] -Resourcegroup [RESOURCE_GROUP] -ApimServiceName [APIM_SERVICENAME] -ClientId [DROPBOX_CLIENTID] -ClientSecret [DROPBOX_CLIENT_SECRET] 
+
+4. Perform the consent from the Azure portal --> API Management --> Authorizations(preview) --> dropbox-demo --> Authorization --> right click on context menu to the right, choose Login, do the consent.  
+
+5. Test API
+    Get API key from API Management and test  
+    GET https://[APIM_SERVICENAME].azure-api.net/dropbox-demo/token?subscription-key=[API-KEY]
+
