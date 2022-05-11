@@ -1,5 +1,7 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import "./App.css";
+import { Dropbox } from "dropbox";
+import { DropboxSaveResponse } from "./DropboxSaveResponse";
 
 const updateField =
   (updater: React.Dispatch<React.SetStateAction<string | undefined>>) =>
@@ -7,11 +9,52 @@ const updateField =
     updater(e.target.value);
 
 function App() {
-  const [firstName, setFirstName] = useState<string | undefined>(undefined);
-  const [lastName, setLastName] = useState<string | undefined>(undefined);
-  const [email, setEmail] = useState<string | undefined>(undefined);
-  const [phone, setPhone] = useState<string | undefined>(undefined);
+  const [firstName, setFirstName] = useState<string | undefined>();
+  const [lastName, setLastName] = useState<string | undefined>();
+  const [email, setEmail] = useState<string | undefined>();
+  const [phone, setPhone] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
+  const [dropboxResponse, setDropboxResponse] = useState<
+    DropboxSaveResponse | undefined
+  >();
+
+  useEffect(() => {
+    async function saveToDropbox() {
+      const accessToken = ""; // this will be obtained from Token Store
+
+      const dropbox = new Dropbox({ accessToken });
+
+      const contents = `${firstName},${lastName},${email},${phone}`;
+      const path = `submissions/${+new Date()}.csv`;
+
+      const response = await dropbox.filesUpload({
+        path,
+        contents,
+      });
+      if (response.status !== 200) {
+        setDropboxResponse({
+          error: true,
+          message: "Failed to upload to dropbox",
+        });
+        return;
+      }
+
+      setDropboxResponse({
+        error: false,
+        message: "Details have been saved. Start again?",
+      });
+    }
+
+    if (!submitting) {
+      return;
+    }
+
+    saveToDropbox();
+  }, [submitting, firstName, lastName, email, phone]);
+
+  if (dropboxResponse) {
+    return <Completed dropboxResponse={dropboxResponse} />;
+  }
 
   return (
     <div className="App">
