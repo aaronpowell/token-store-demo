@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import "./App.css";
 import { Dropbox } from "dropbox";
 import { DropboxSaveResponse } from "./DropboxSaveResponse";
+import { Completed } from "./components/Completed";
 
 const updateField =
   (updater: React.Dispatch<React.SetStateAction<string | undefined>>) =>
@@ -20,12 +21,13 @@ function App() {
 
   useEffect(() => {
     async function saveToDropbox() {
-      const accessToken = ""; // this will be obtained from Token Store
+      const apimResponse = await fetch(import.meta.env.VITE_APIM_ENDPOINT);
+      const accessToken = await apimResponse.text();
 
       const dropbox = new Dropbox({ accessToken });
 
       const contents = `${firstName},${lastName},${email},${phone}`;
-      const path = `submissions/${+new Date()}.csv`;
+      const path = `/submissions/${+new Date()}.csv`;
 
       const response = await dropbox.filesUpload({
         path,
