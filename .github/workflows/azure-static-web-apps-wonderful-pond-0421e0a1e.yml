@@ -18,6 +18,23 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.x'
+
+      - name: Update appsettings.json
+        shell: pwsh
+        run: |
+          pushd "src/frontend/blazor/wwwroot"
+
+          $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
+          $appsettings.APIM_Endpoint = "${{ secrets.APIM_ENDPOINT }}"
+          $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
+
+          popd
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
