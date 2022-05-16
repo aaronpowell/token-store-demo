@@ -8,39 +8,40 @@
 @inject HttpClient Http
 @inject IConfiguration Configuration
 
-<div>
+<div class="container-sm" style="max-width: 540px;">
   <h1>Blazor Lead Capture</h1>
-  <form @onsubmit="OnFormSubmitted">
+  <form class="clearfix" @onsubmit="OnFormSubmittedAsync">
     <fieldset>
       <div>
-        <label htmlFor="firstName">First name</label>
-        <input type="text" name="firstName" id="firstName" placeholder="Justin" value="@firstName" />
+        <label for="firstName" class="form-label">First name</label>
+        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Justin" value="@firstName" @onchange="@(e => OnFieldChanged(e, "firstName"))" />
       </div>
       <div>
-        <label htmlFor="lastName">Last name</label>
-        <input type="text" name="lastName" id="lastName" placeholder="Yoo" value="@lastName" />
+        <label for="lastName" class="form-label">Last name</label>
+        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Yoo" value="@lastName" @onchange="@(e => OnFieldChanged(e, "lastName"))" />
       </div>
     </fieldset>
 
     <fieldset>
       <div>
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="bar@email.com" value="@email" />
+        <label htmlFor="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="bar@email.com" value="@email" @onchange="@(e => OnFieldChanged(e, "email"))" />
       </div>
       <div>
-        <label htmlFor="phone">Phone</label>
-        <input type="phone" id="phone" name="phone" placeholder="555-555-555" value="@phone" />
+        <label htmlFor="phone" class="form-label">Phone</label>
+        <input type="phone" class="form-control" id="phone" name="phone" placeholder="555-555-555" value="@phone" @onchange="@(e => OnFieldChanged(e, "phone"))" />
       </div>
     </fieldset>
 
     <fieldset>
-      <button type="submit">Submit</button>
+      <button type="submit" class="btn btn-@buttonColour" disabled="@(submitting || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))">Submit</button>
     </fieldset>
   </form>
-</div>
 
-<div>
-  <h2>@message</h2>
+  <div class="alert alert-@alertResult" style="display:@displayResult;">
+    <h2>@messageResult</h2>
+    <button type="reset" class="btn btn-dark" @onclick="ResetFields">Start Over?</button>
+  </div>
 </div>
 
 @code {
@@ -48,46 +49,134 @@
     private string? lastName;
     private string? email;
     private string? phone;
+
+    private string? buttonColour;
     private bool submitting;
-    private string? message;
 
-    protected async Task OnFormSubmitted(EventArgs e)
+    private string? alertResult;
+    private string? displayResult;
+    private string? messageResult;
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
     {
-        submitting = true;
-        message = null;
-    
-        await SaveToDropbox().ConfigureAwait(false);
+        buttonColour = "outline-primary";
+        displayResult = "none";
+
+        await Task.CompletedTask;
     }
 
-    protected async Task OnFieldChanged(ChangeEventArgs e)
+    /// <summary>
+    /// Invoked when any field value on the form changes.
+    /// </summary>
+    /// <param name="e"><see cref="ChangeEventArgs"/> instance.</param>
+    /// <param name="fieldName">The field name that the change has occurred.</param>
+    protected void OnFieldChanged(ChangeEventArgs e, string fieldName)
     {
-        if (e.Value is string value)
+        if (submitting)
         {
-        }
-    }
-
-    private async Task SaveToDropbox()
-    {
-        var requestUrl = Configuration.GetValue<string>("APIM_Endpoint");
-        var token = await Http.GetStringAsync(requestUrl).ConfigureAwait(false);
-        var path = $"/submissions/{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}.csv";
-        var contents = $"{firstName},${lastName},${email},${phone}";
-        var bytes = UTF8Encoding.UTF8.GetBytes(contents);
-
-        var previewUrl = default(string);
-        using(var dropbox = new DropboxClient(token))
-        using(var stream = new MemoryStream(bytes))
-        {
-            var result = await dropbox.Files.UploadAsync(path, WriteMode.Overwrite.Instance, body: stream).ConfigureAwait(false);
-            previewUrl = result.PreviewUrl;
-        }
-
-        if (string.IsNullOrWhiteSpace(previewUrl))
-        {
-            message = "Failed to save to Dropbox";
             return;
         }
 
-        message = "Details have been saved";
+        switch (fieldName)
+        {
+            case "firstName":
+                firstName = e.Value.ToString();
+                break;
+            case "lastName":
+                lastName = e.Value.ToString();
+                break;
+            case "email":
+                email = e.Value.ToString();
+                break;
+            case "phone":
+                phone = e.Value.ToString();
+                break;
+        }
+
+        if (!submitting &&
+            !string.IsNullOrWhiteSpace(firstName) &&
+            !string.IsNullOrWhiteSpace(lastName) &&
+            !string.IsNullOrWhiteSpace(email) &&
+            !string.IsNullOrWhiteSpace(phone))
+        {
+            buttonColour = "primary";
+
+            return;
+        }
+
+        buttonColour = "outline-primary";
+    }
+
+    /// <summary>
+    /// Invoked when submitting the form.
+    /// </summary>
+    /// <param name="e"><see cref="EventArgs"/> instance.</param>
+    protected async Task OnFormSubmittedAsync(EventArgs e)
+    {
+        buttonColour = "outline-primary";
+        submitting = true;
+
+        await SaveToDropboxAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Invoked when the reset button clicks.
+    /// </summary>
+    /// <param name="e"><see cref="MouseEventArgs"/> instance.</param>
+    protected void ResetFields(MouseEventArgs e)
+    {
+        firstName = null;
+        lastName = null;
+        email = null;
+        phone = null;
+
+        buttonColour = "outline-primary";
+        submitting = false;
+
+        messageResult = null;
+        displayResult = "none";
+    }
+
+    private async Task SaveToDropboxAsync()
+    {
+        // Gets the APIM endpoint from appsettings.json
+        var requestUrl = Configuration.GetValue<string>("APIM_Endpoint");
+        
+        // Gets the auth token from APIM
+        var token = await Http.GetStringAsync(requestUrl).ConfigureAwait(false);
+
+        // Builds contents.
+        var path = $"/submissions/{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}.csv";
+        var contents = $"{firstName},{lastName},{email},{phone}";
+        var bytes = UTF8Encoding.UTF8.GetBytes(contents);
+
+        // Uploads the contents.
+        var result = default(FileMetadata);
+        using(var dropbox = new DropboxClient(token))
+        using(var stream = new MemoryStream(bytes))
+        {
+            result = await dropbox.Files.UploadAsync(path, WriteMode.Overwrite.Instance, body: stream).ConfigureAwait(false);
+        }
+
+        // Shows the result message box.
+        if (string.IsNullOrWhiteSpace(result.ContentHash))
+        {
+            buttonColour = "outline-primary";
+            submitting = true;
+
+            alertResult = "danger";
+            messageResult = "Failed to save to Dropbox";
+            displayResult = "block";
+
+            return;
+        }
+
+        buttonColour = "outline-primary";
+        submitting = true;
+
+        alertResult = "success";
+        messageResult = "Details have been saved";
+        displayResult = "block";
     }
 }
