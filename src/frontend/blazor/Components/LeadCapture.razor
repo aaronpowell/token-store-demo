@@ -34,13 +34,18 @@
     </fieldset>
 
     <fieldset>
-      <button type="submit" class="btn btn-@buttonColour" disabled="@(submitting || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))">Submit</button>
+      <button type="submit" class="btn btn-@buttonColour" disabled="@(submitting || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))">
+        <span>Submit</span>
+        <span class="spinner-border spinner-border-sm" style="display:@displaySpinner;" role="status" aria-hidden="true"></span>
+      </button>
     </fieldset>
   </form>
 
   <div class="alert alert-@alertResult" style="display:@displayResult;">
     <h2>@messageResult</h2>
-    <button type="reset" class="btn btn-dark" @onclick="ResetFields">Start Over?</button>
+    <button type="reset" class="btn btn-dark" @onclick="ResetFields">
+      <span>Start Over?</span>
+    </button>
   </div>
 </div>
 
@@ -52,6 +57,7 @@
 
     private string? buttonColour;
     private bool submitting;
+    private string? displaySpinner;
 
     private string? alertResult;
     private string? displayResult;
@@ -61,6 +67,7 @@
     protected override async Task OnInitializedAsync()
     {
         buttonColour = "outline-primary";
+        displaySpinner = "none";
         displayResult = "none";
 
         await Task.CompletedTask;
@@ -116,6 +123,7 @@
     {
         buttonColour = "outline-primary";
         submitting = true;
+        displaySpinner = "inline-block";
 
         await SaveToDropboxAsync().ConfigureAwait(false);
     }
@@ -133,6 +141,7 @@
 
         buttonColour = "outline-primary";
         submitting = false;
+        displaySpinner = "none";
 
         messageResult = null;
         displayResult = "none";
@@ -164,6 +173,7 @@
         {
             buttonColour = "outline-primary";
             submitting = true;
+            displaySpinner = "none";
 
             alertResult = "danger";
             messageResult = "Failed to save to Dropbox";
@@ -174,6 +184,7 @@
 
         buttonColour = "outline-primary";
         submitting = true;
+        displaySpinner = "none";
 
         alertResult = "success";
         messageResult = "Details have been saved";
