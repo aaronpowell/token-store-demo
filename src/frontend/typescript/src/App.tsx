@@ -64,11 +64,7 @@ function App() {
         <h1>Contoso Lead Capture</h1>
         <form
           action=""
-          onSubmit={(e) => (
-            e.preventDefault(),
-            setSubmitting(true),
-            console.log({ firstName, lastName, email, phone })
-          )}
+          onSubmit={(e) => (e.preventDefault(), setSubmitting(true))}
         >
           <fieldset>
             <div>

@@ -20,7 +20,9 @@
   "extensions": [
     "ms-dotnettools.csharp",
     "esbenp.prettier-vscode",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "ms-azuretools.vscode-bicep",
+    "ms-vscode.PowerShell-Preview"
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
