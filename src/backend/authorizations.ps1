@@ -38,7 +38,7 @@ $Body = '
                 "authorizationCode": {
                     "clientId": "'+$ClientId+'",
                     "clientSecret": "'+$ClientSecret+'",
-                    "scopes": "r_liteprofile"
+                    "scopes": "files.metadata.write files.content.write files.content.read"
                 }
             }
         }
