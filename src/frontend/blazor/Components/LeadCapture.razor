@@ -1,9 +1,8 @@
 @using System.Text
-
 @using Dropbox.Api
 @using Dropbox.Api.Files
-
 @using Microsoft.Extensions.Configuration
+@using TokenStore.Models
 
 @inject HttpClient Http
 @inject IConfiguration Configuration
@@ -14,35 +13,35 @@
     <fieldset>
       <div>
         <label for="firstName" class="form-label">First name</label>
-        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Justin" value="@firstName" @onchange="@(e => OnFieldChanged(e, "firstName"))" />
+        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Justin" value="@userInfo.FirstName" @onchange="@(e => OnFieldChanged(e, "firstName"))" />
       </div>
       <div>
         <label for="lastName" class="form-label">Last name</label>
-        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Yoo" value="@lastName" @onchange="@(e => OnFieldChanged(e, "lastName"))" />
+        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Yoo" value="@userInfo.LastName" @onchange="@(e => OnFieldChanged(e, "lastName"))" />
       </div>
     </fieldset>
 
     <fieldset>
       <div>
         <label htmlFor="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" placeholder="bar@email.com" value="@email" @onchange="@(e => OnFieldChanged(e, "email"))" />
+        <input type="email" class="form-control" id="email" name="email" placeholder="bar@email.com" value="@userInfo.Email" @onchange="@(e => OnFieldChanged(e, "email"))" />
       </div>
       <div>
         <label htmlFor="phone" class="form-label">Phone</label>
-        <input type="phone" class="form-control" id="phone" name="phone" placeholder="555-555-555" value="@phone" @onchange="@(e => OnFieldChanged(e, "phone"))" />
+        <input type="phone" class="form-control" id="phone" name="phone" placeholder="555-555-555" value="@userInfo.Phone" @onchange="@(e => OnFieldChanged(e, "phone"))" />
       </div>
     </fieldset>
 
     <fieldset>
-      <button type="submit" class="btn btn-@buttonColour" disabled="@(submitting || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))">
+      <button type="submit" class="btn btn-@componentUIInfo.ButtonColour" disabled="@(componentUIInfo.Submitting || string.IsNullOrWhiteSpace(userInfo.FirstName) || string.IsNullOrWhiteSpace(userInfo.LastName) || string.IsNullOrWhiteSpace(userInfo.Email) || string.IsNullOrWhiteSpace(userInfo.Phone))">
         <span>Submit</span>
-        <span class="spinner-border spinner-border-sm" style="display:@displaySpinner;" role="status" aria-hidden="true"></span>
+        <span class="spinner-border spinner-border-sm" style="display:@componentUIInfo.DisplaySpinner;" role="status" aria-hidden="true"></span>
       </button>
     </fieldset>
   </form>
 
-  <div class="alert alert-@alertResult" style="display:@displayResult;">
-    <h2>@messageResult</h2>
+  <div class="alert alert-@componentUIInfo.AlertResult" style="display:@componentUIInfo.DisplayResult;">
+    <h2>@componentUIInfo.MessageResult</h2>
     <button type="reset" class="btn btn-dark" @onclick="ResetFields">
       <span>Start Over?</span>
     </button>
@@ -50,25 +49,14 @@
 </div>
 
 @code {
-    private string? firstName;
-    private string? lastName;
-    private string? email;
-    private string? phone;
-
-    private string? buttonColour;
-    private bool submitting;
-    private string? displaySpinner;
-
-    private string? alertResult;
-    private string? displayResult;
-    private string? messageResult;
+    private UserInfo userInfo = new UserInfo();
+    private ComponentUIInfo componentUIInfo = new ComponentUIInfo();
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
-        buttonColour = "outline-primary";
-        displaySpinner = "none";
-        displayResult = "none";
+        userInfo = new UserInfo();
+        componentUIInfo = new ComponentUIInfo();
 
         await Task.CompletedTask;
     }
@@ -80,7 +68,7 @@
     /// <param name="fieldName">The field name that the change has occurred.</param>
     protected void OnFieldChanged(ChangeEventArgs e, string fieldName)
     {
-        if (submitting)
+        if (componentUIInfo.Submitting)
         {
             return;
         }
@@ -88,31 +76,31 @@
         switch (fieldName)
         {
             case "firstName":
-                firstName = e.Value.ToString();
+                userInfo.FirstName = e.Value.ToString();
                 break;
             case "lastName":
-                lastName = e.Value.ToString();
+                userInfo.LastName = e.Value.ToString();
                 break;
             case "email":
-                email = e.Value.ToString();
+                userInfo.Email = e.Value.ToString();
                 break;
             case "phone":
-                phone = e.Value.ToString();
+                userInfo.Phone = e.Value.ToString();
                 break;
         }
 
-        if (!submitting &&
-            !string.IsNullOrWhiteSpace(firstName) &&
-            !string.IsNullOrWhiteSpace(lastName) &&
-            !string.IsNullOrWhiteSpace(email) &&
-            !string.IsNullOrWhiteSpace(phone))
+        if (!componentUIInfo.Submitting &&
+            !string.IsNullOrWhiteSpace(userInfo.FirstName) &&
+            !string.IsNullOrWhiteSpace(userInfo.LastName) &&
+            !string.IsNullOrWhiteSpace(userInfo.Email) &&
+            !string.IsNullOrWhiteSpace(userInfo.Phone))
         {
-            buttonColour = "primary";
+            componentUIInfo.ButtonColour = "primary";
 
             return;
         }
 
-        buttonColour = "outline-primary";
+        componentUIInfo.ButtonColour = "outline-primary";
     }
 
     /// <summary>
@@ -121,9 +109,9 @@
     /// <param name="e"><see cref="EventArgs"/> instance.</param>
     protected async Task OnFormSubmittedAsync(EventArgs e)
     {
-        buttonColour = "outline-primary";
-        submitting = true;
-        displaySpinner = "inline-block";
+        componentUIInfo.ButtonColour = "outline-primary";
+        componentUIInfo.Submitting = true;
+        componentUIInfo.DisplaySpinner = "inline-block";
 
         await SaveToDropboxAsync().ConfigureAwait(false);
     }
@@ -134,17 +122,8 @@
     /// <param name="e"><see cref="MouseEventArgs"/> instance.</param>
     protected void ResetFields(MouseEventArgs e)
     {
-        firstName = null;
-        lastName = null;
-        email = null;
-        phone = null;
-
-        buttonColour = "outline-primary";
-        submitting = false;
-        displaySpinner = "none";
-
-        messageResult = null;
-        displayResult = "none";
+        userInfo = new UserInfo();
+        componentUIInfo = new ComponentUIInfo();
     }
 
     private async Task SaveToDropboxAsync()
@@ -157,7 +136,7 @@
 
         // Builds contents.
         var path = $"/submissions/{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}.csv";
-        var contents = $"{firstName},{lastName},{email},{phone}";
+        var contents = $"{userInfo.FirstName},{userInfo.LastName},{userInfo.Email},{userInfo.Phone}";
         var bytes = UTF8Encoding.UTF8.GetBytes(contents);
 
         // Uploads the contents.
@@ -171,23 +150,23 @@
         // Shows the result message box.
         if (string.IsNullOrWhiteSpace(result.ContentHash))
         {
-            buttonColour = "outline-primary";
-            submitting = true;
-            displaySpinner = "none";
+            componentUIInfo.ButtonColour = "outline-primary";
+            componentUIInfo.Submitting = true;
+            componentUIInfo.DisplaySpinner = "none";
 
-            alertResult = "danger";
-            messageResult = "Failed to save to Dropbox";
-            displayResult = "block";
+            componentUIInfo.AlertResult = "danger";
+            componentUIInfo.MessageResult = "Failed to save to Dropbox";
+            componentUIInfo.DisplayResult = "block";
 
             return;
         }
 
-        buttonColour = "outline-primary";
-        submitting = true;
-        displaySpinner = "none";
+        componentUIInfo.ButtonColour = "outline-primary";
+        componentUIInfo.Submitting = true;
+        componentUIInfo.DisplaySpinner = "none";
 
-        alertResult = "success";
-        messageResult = "Details have been saved";
-        displayResult = "block";
+        componentUIInfo.AlertResult = "success";
+        componentUIInfo.MessageResult = "Details have been saved";
+        componentUIInfo.DisplayResult = "block";
     }
 }
