@@ -1,4 +1,4 @@
-name: Release to Azure PROD and GitHub Release
+name: Release Artifacts to GitHub
 
 on:
   push:
