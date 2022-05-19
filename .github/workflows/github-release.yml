@@ -1,0 +1,105 @@
+name: Release to Azure PROD and GitHub Release
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  release_to_github:
+    name: Release Artifacts to GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Extract version from tag
+        shell: pwsh
+        run: |
+          $version = (echo ${{ github.ref }}) -replace "refs/tags/", ""
+
+          echo "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
+
+      - name: Setup node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          check-latest: true
+
+      - name: Update appsettings.json
+        shell: pwsh
+        run: |
+          pushd "src/frontend/blazor/wwwroot"
+
+          $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
+          $appsettings.APIM_Endpoint = "${{ secrets.APIM_ENDPOINT }}"
+          $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
+
+          popd
+
+      - name: Build and publish Blazor WASM app
+        shell: bash
+        run: |
+          pushd "src/frontend/blazor"
+
+          dotnet restore .
+          dotnet build . -c Release
+          dotnet publish . -c Release
+
+          popd
+
+      - name: Zip artifact for Blazor WASM
+        shell: bash
+        run: |
+          pushd "src/frontend/blazor/bin/Release/net6.0/publish/wwwroot"
+
+          zip -qq -r blazor.zip .
+
+          popd
+
+      - name: Remap environment variables
+        shell: bash
+        run: |
+          echo "VITE_APIM_ENDPOINT=${{ secrets.APIM_ENDPOINT }}" >> $GITHUB_ENV
+
+      - name: Build and publish React app
+        shell: bash
+        run: |
+          pushd "src/frontend/typescript"
+
+          npm install
+          npm run build
+
+          popd
+
+      - name: Zip artifact for React
+        shell: bash
+        run: |
+          pushd "src/frontend/typescript/dist"
+
+          zip -qq -r react.zip .
+
+          popd
+
+      - name: Move artifacts
+        shell: bash
+        run: |
+          mkdir published
+          mv src/frontend/blazor/bin/Release/net6.0/publish/wwwroot/blazor.zip published/blazor.zip
+          mv src/frontend/frontend/typescript/dist/react.zip published/react.zip
+
+      - name: Release artifacts to GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: false
+          name: Release ${{ env.RELEASE_VERSION }}
+          generate_release_notes: true
+          files: |
+            published/blazor.zip
+            published/react.zip
