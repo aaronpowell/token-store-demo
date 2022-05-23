@@ -26,11 +26,11 @@ jobs:
       #   with:
       #     dotnet-version: 6.x
 
-      # - name: Setup node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: 14
-      #     check-latest: true
+      - name: Setup node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          check-latest: true
 
       # - name: Update appsettings.json
       #   shell: pwsh

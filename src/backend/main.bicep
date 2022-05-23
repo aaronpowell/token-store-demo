@@ -42,20 +42,20 @@ module sttapp_react './sttapp.bicep' = {
   }
 }
 
-module depscrpt './depscrpt.bicep' = {
-  scope: resourcegroup
-  name: 'deploymentscript'
-  dependsOn: [
-    apim
-    sttapp_blazor
-    sttapp_react
-    ]
-  params: {
-    rg_name: rg_name
-    depscrpt_name: depscrpt_name
-    apim_name: apim_name
-    sttapp_name_blazor: sttapp_name_blazor
-    sttapp_name_react: sttapp_name_react
-    location: location
-  }
-}
+// module depscrpt './depscrpt.bicep' = {
+//   scope: resourcegroup
+//   name: 'deploymentscript'
+//   dependsOn: [
+//     apim
+//     sttapp_blazor
+//     sttapp_react
+//     ]
+//   params: {
+//     rg_name: rg_name
+//     depscrpt_name: depscrpt_name
+//     apim_name: apim_name
+//     sttapp_name_blazor: sttapp_name_blazor
+//     sttapp_name_react: sttapp_name_react
+//     location: location
+//   }
+// }

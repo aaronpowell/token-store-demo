@@ -77,6 +77,7 @@ cd ~
 # Build React app
 cd ~/artifacts/react
 echo "VITE_APIM_ENDPOINT=$apim_endpoint" > .env
+node ./node_modules/esbuild/install.js
 # npm install
 npm run build
 cd ~
