@@ -5,10 +5,10 @@ param rg_name string
 @description('Resource group location. Default to "westcentralus"')
 param location string = 'westcentralus'
 
-var apim_name = 'apim-${rg_name}'
-var sttapp_name_blazor = 'sttapp-${rg_name}-blazor'
-var sttapp_name_react = 'sttapp-${rg_name}-react'
-var depscrpt_name = 'depscrpt-${rg_name}'
+var apim_name = rg_name
+var sttapp_name_blazor = '${rg_name}-blazor'
+var sttapp_name_react = '${rg_name}-react'
+var depscrpt_name = rg_name
 
 resource resourcegroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${rg_name}'

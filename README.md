@@ -12,7 +12,7 @@
 
 click the button below to create and deploy both Blazor WASM app and React app in one go.
 
-[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/?Microsoft_Azure_ApiManagement=tuanguye2&feature.tokenstores=true#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjustinyoo%2Ftoken-store-demo%2Fmain%2Fsrc%2Fbackend%2Fmain.json)
+[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/?Microsoft_Azure_ApiManagement=tuanguye2&feature.tokenstores=true#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjustinyoo%2Ftoken-store-demo%2Fmain%2Fsrc%2Fbackend%2Fmain.json%3Ftoken%3DGHSAT0AAAAAABOYV4LKPYAFWUODHEF6PLQWYULHRBQ)
 
 
 ### Step-by-Step Instruction ###

@@ -57,7 +57,7 @@ resource depscrpt 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         value: sttapp_name_react
       }
     ]
-    primaryScriptUri: 'https://raw.githubusercontent.com/devrel-kr/nhn-toast-notification-service-custom-connector/main/infra/setup-apim.sh'
+    primaryScriptUri: 'https://raw.githubusercontent.com/justinyoo/token-store-demo/main/src/backend/setup-swa.sh?token=GHSAT0AAAAAABOYV4LLIWQJSIOLPSLAIR4YYULHS6Q'
     cleanupPreference: 'OnExpiration'
     retentionInterval: 'P1D'
   }

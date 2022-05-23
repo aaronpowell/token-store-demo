@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "7610794071216781526"
+      "templateHash": "14578192842460121504"
     }
   },
   "parameters": {
@@ -24,10 +24,10 @@
     }
   },
   "variables": {
-    "apim_name": "[format('apim-{0}', parameters('rg_name'))]",
-    "sttapp_name_blazor": "[format('sttapp-{0}-blazor', parameters('rg_name'))]",
-    "sttapp_name_react": "[format('sttapp-{0}-react', parameters('rg_name'))]",
-    "depscrpt_name": "[format('depscrpt-{0}', parameters('rg_name'))]"
+    "apim_name": "[parameters('rg_name')]",
+    "sttapp_name_blazor": "[format('{0}-blazor', parameters('rg_name'))]",
+    "sttapp_name_react": "[format('{0}-react', parameters('rg_name'))]",
+    "depscrpt_name": "[parameters('rg_name')]"
   },
   "resources": [
     {
@@ -295,7 +295,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.6.18.56646",
-              "templateHash": "16188335195308615468"
+              "templateHash": "12127132165989506670"
             }
           },
           "parameters": {
@@ -374,7 +374,7 @@
                     "value": "[parameters('sttapp_name_react')]"
                   }
                 ],
-                "primaryScriptUri": "https://raw.githubusercontent.com/devrel-kr/nhn-toast-notification-service-custom-connector/main/infra/setup-apim.sh",
+                "primaryScriptUri": "https://raw.githubusercontent.com/justinyoo/token-store-demo/main/src/backend/setup-swa.sh?token=GHSAT0AAAAAABOYV4LLIWQJSIOLPSLAIR4YYULHS6Q",
                 "cleanupPreference": "OnExpiration",
                 "retentionInterval": "P1D"
               },
