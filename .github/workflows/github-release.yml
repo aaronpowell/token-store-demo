@@ -21,67 +21,67 @@ jobs:
 
           echo "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 6.x
+      # - name: Setup .NET SDK
+      #   uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: 6.x
 
-      - name: Setup node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-          check-latest: true
+      # - name: Setup node.js
+      #   uses: actions/setup-node@v1
+      #   with:
+      #     node-version: 14
+      #     check-latest: true
 
-      - name: Update appsettings.json
-        shell: pwsh
-        run: |
-          pushd "src/frontend/blazor/wwwroot"
+      # - name: Update appsettings.json
+      #   shell: pwsh
+      #   run: |
+      #     pushd "src/frontend/blazor/wwwroot"
 
-          $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
-          $appsettings.APIM_Endpoint = "${{ secrets.APIM_ENDPOINT }}"
-          $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
+      #     $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
+      #     $appsettings.APIM_Endpoint = "${{ secrets.APIM_ENDPOINT }}"
+      #     $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
 
-          popd
+      #     popd
 
-      - name: Build and publish Blazor WASM app
-        shell: bash
-        run: |
-          pushd "src/frontend/blazor"
+      # - name: Build and publish Blazor WASM app
+      #   shell: bash
+      #   run: |
+      #     pushd "src/frontend/blazor"
 
-          dotnet restore .
-          dotnet build . -c Release
-          dotnet publish . -c Release
+      #     dotnet restore .
+      #     dotnet build . -c Release
+      #     dotnet publish . -c Release
 
-          popd
+      #     popd
 
       - name: Zip artifact for Blazor WASM
         shell: bash
         run: |
-          pushd "src/frontend/blazor/bin/Release/net6.0/publish/wwwroot"
+          pushd "src/frontend/blazor"
 
           zip -qq -r blazor.zip .
 
           popd
 
-      - name: Remap environment variables
-        shell: bash
-        run: |
-          echo "VITE_APIM_ENDPOINT=${{ secrets.APIM_ENDPOINT }}" >> $GITHUB_ENV
+      # - name: Remap environment variables
+      #   shell: bash
+      #   run: |
+      #     echo "VITE_APIM_ENDPOINT=${{ secrets.APIM_ENDPOINT }}" >> $GITHUB_ENV
 
-      - name: Build and publish React app
-        shell: bash
-        run: |
-          pushd "src/frontend/typescript"
+      # - name: Build and publish React app
+      #   shell: bash
+      #   run: |
+      #     pushd "src/frontend/typescript"
 
-          npm install
-          npm run build
+      #     npm install
+      #     npm run build
 
-          popd
+      #     popd
 
       - name: Zip artifact for React
         shell: bash
         run: |
-          pushd "src/frontend/typescript/dist"
+          pushd "src/frontend/typescript"
 
           zip -qq -r react.zip .
 
@@ -91,8 +91,8 @@ jobs:
         shell: bash
         run: |
           mkdir published
-          mv src/frontend/blazor/bin/Release/net6.0/publish/wwwroot/blazor.zip published/blazor.zip
-          mv src/frontend/typescript/dist/react.zip published/react.zip
+          mv src/frontend/blazor/blazor.zip published/blazor.zip
+          mv src/frontend/typescript/react.zip published/react.zip
 
       - name: Release artifacts to GitHub
         uses: softprops/action-gh-release@v1
