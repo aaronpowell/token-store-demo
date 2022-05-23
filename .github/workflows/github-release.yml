@@ -68,15 +68,15 @@ jobs:
       #   run: |
       #     echo "VITE_APIM_ENDPOINT=${{ secrets.APIM_ENDPOINT }}" >> $GITHUB_ENV
 
-      # - name: Build and publish React app
-      #   shell: bash
-      #   run: |
-      #     pushd "src/frontend/typescript"
+      - name: Build and publish React app
+        shell: bash
+        run: |
+          pushd "src/frontend/typescript"
 
-      #     npm install
-      #     npm run build
+          npm install
+          # npm run build
 
-      #     popd
+          popd
 
       - name: Zip artifact for React
         shell: bash

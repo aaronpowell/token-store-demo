@@ -46,15 +46,15 @@ reactzip=$(echo $urls | jq '.[] | select(.name == "react.zip") | .url' -r)
 # curl -L -H "Accept: application/octet-stream" $blazorzip -o blazor.zip
 # curl -L -H "Accept: application/octet-stream" $reactzip -o react.zip
 
-curl -L -H "Accept: application/octet-stream" -H "Authorization: Bearer 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" $blazorzip -o blazor.zip
-curl -L -H "Accept: application/octet-stream" -H "Authorization: Bearer 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" $reactzip -o react.zip
+curl -L -H "Accept: application/octet-stream" -H "Authorization: Bearer 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" $blazorzip -o ~/blazor.zip
+curl -L -H "Accept: application/octet-stream" -H "Authorization: Bearer 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" $reactzip -o ~/react.zip
 
-mkdir artifacts
-mkdir artifacts/blazor
-mkdir artifacts/react
+mkdir ~/artifacts
+mkdir ~/artifacts/blazor
+mkdir ~/artifacts/react
 
-unzip blazor.zip -d artifacts/blazor
-unzip react.zip -d artifacts/react
+unzip ~/blazor.zip -d ~/artifacts/blazor
+unzip ~/react.zip -d ~/artifacts/react
 
 # Get APIM endpoint
 subscription_id=$(az account show --query "id" -o tsv)
@@ -68,19 +68,18 @@ subscription_key=$(az rest --method post --uri $apim_secret_uri\?api-version=$ap
 apim_endpoint=$gateway_url/dropbox-demo/token\?subscription-key=$subscription_key
 
 # Update environment variables
-pushd artifacts/blazor/wwwroot
+cd ~/artifacts/blazor/wwwroot
 echo "{ \"APIM_Endpoint\": \"$apim_endpoint\" }" > appsettings.json
-popd
-pushd artifacts/blazor
+cd ~/artifacts/blazor
 dotnet publish -c Release
-popd
+cd ~
 
 # Build React app
-pushd artifacts/react
+cd ~/artifacts/react
 echo "VITE_APIM_ENDPOINT=$apim_endpoint" > .env
-npm install
+# npm install
 npm run build
-popd
+cd ~
 
 # Get SWA deployment key
 resource_group="rg-$RESOURCE_GROUP_NAME"
@@ -91,5 +90,5 @@ sttapp_blazor_token=$(az staticwebapp secrets list -g $resource_group -n $sttapp
 sttapp_react_token=$(az staticwebapp secrets list -g $resource_group -n $sttapp_react --query "properties.apiKey" -o tsv)
 
 # Deploy SWA apps
-swa deploy -R $resource_group -n $sttapp_blazor -a artifacts/blazor/bin/Release/net6.0/publish/wwwroot -d $sttapp_blazor_token --env default
-swa deploy -R $resource_group -n $sttapp_react -a artifacts/react/dist -d $sttapp_react_token --env default
+swa deploy -R $resource_group -n $sttapp_blazor -a ~/artifacts/blazor/bin/Release/net6.0/publish/wwwroot -d $sttapp_blazor_token --env default
+swa deploy -R $resource_group -n $sttapp_react -a ~/artifacts/react/dist -d $sttapp_react_token --env default
