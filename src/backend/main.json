@@ -1,0 +1,397 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.6.18.56646",
+      "templateHash": "7610794071216781526"
+    }
+  },
+  "parameters": {
+    "rg_name": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "westcentralus",
+      "metadata": {
+        "description": "Resource group location. Default to \"westcentralus\""
+      }
+    }
+  },
+  "variables": {
+    "apim_name": "[format('apim-{0}', parameters('rg_name'))]",
+    "sttapp_name_blazor": "[format('sttapp-{0}-blazor', parameters('rg_name'))]",
+    "sttapp_name_react": "[format('sttapp-{0}-react', parameters('rg_name'))]",
+    "depscrpt_name": "[format('depscrpt-{0}', parameters('rg_name'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-04-01",
+      "name": "[format('rg-{0}', parameters('rg_name'))]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "apimservicedeployment",
+      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "apim_name": {
+            "value": "[variables('apim_name')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.6.18.56646",
+              "templateHash": "11433018568260890543"
+            }
+          },
+          "parameters": {
+            "apim_name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            }
+          },
+          "variables": {
+            "operation_token_policy": "<policies>\r\n<inbound>\r\n    <base />\r\n    <get-authorization-context provider-id=\"dropbox-demo\" authorization-id=\"auth\" context-variable-name=\"auth-context\" ignore-error=\"false\" identity-type=\"managed\" />\r\n    <return-response>\r\n        <set-body>@(((Authorization)context.Variables.GetValueOrDefault(&quot;auth-context&quot;))?.AccessToken)</set-body>\r\n    </return-response>\r\n</inbound>\r\n<backend>\r\n    <base />\r\n</backend>\r\n<outbound>\r\n    <base />\r\n</outbound>\r\n<on-error>\r\n    <base />\r\n</on-error>\r\n</policies>"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ApiManagement/service",
+              "apiVersion": "2021-08-01",
+              "name": "[format('apim-{0}', parameters('apim_name'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Consumption",
+                "capacity": 0
+              },
+              "properties": {
+                "publisherName": "John Doe",
+                "publisherEmail": "john.doe@nomail.com"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              }
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis",
+              "apiVersion": "2021-08-01",
+              "name": "[format('{0}/{1}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo')]",
+              "properties": {
+                "serviceUrl": "https://api.dropboxapi.com",
+                "path": "dropbox-demo",
+                "displayName": "dropbox-demo",
+                "protocols": [
+                  "https"
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('apim-{0}', parameters('apim_name')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis/operations",
+              "apiVersion": "2021-08-01",
+              "name": "[format('{0}/{1}/{2}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken')]",
+              "properties": {
+                "method": "GET",
+                "urlTemplate": "/token",
+                "displayName": "gettoken"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', format('apim-{0}', parameters('apim_name')), 'dropbox-demo')]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+              "apiVersion": "2021-08-01",
+              "name": "[format('{0}/{1}/{2}/{3}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken', 'policy')]",
+              "properties": {
+                "value": "[variables('operation_token_policy')]",
+                "format": "xml"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken')]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "sttapp_blazor",
+      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sttapp_name": {
+            "value": "[variables('sttapp_name_blazor')]"
+          },
+          "location": {
+            "value": "centralus"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.6.18.56646",
+              "templateHash": "7939280103958111884"
+            }
+          },
+          "parameters": {
+            "sttapp_name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "centralus"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/staticSites",
+              "apiVersion": "2021-02-01",
+              "name": "[format('sttapp-{0}', parameters('sttapp_name'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Free"
+              },
+              "properties": {
+                "allowConfigFileUpdates": true,
+                "stagingEnvironmentPolicy": "Enabled"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "sttapp_react",
+      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "sttapp_name": {
+            "value": "[variables('sttapp_name_react')]"
+          },
+          "location": {
+            "value": "centralus"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.6.18.56646",
+              "templateHash": "7939280103958111884"
+            }
+          },
+          "parameters": {
+            "sttapp_name": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "centralus"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/staticSites",
+              "apiVersion": "2021-02-01",
+              "name": "[format('sttapp-{0}', parameters('sttapp_name'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Free"
+              },
+              "properties": {
+                "allowConfigFileUpdates": true,
+                "stagingEnvironmentPolicy": "Enabled"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "deploymentscript",
+      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "rg_name": {
+            "value": "[parameters('rg_name')]"
+          },
+          "depscrpt_name": {
+            "value": "[variables('depscrpt_name')]"
+          },
+          "apim_name": {
+            "value": "[variables('apim_name')]"
+          },
+          "sttapp_name_blazor": {
+            "value": "[variables('sttapp_name_blazor')]"
+          },
+          "sttapp_name_react": {
+            "value": "[variables('sttapp_name_react')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.6.18.56646",
+              "templateHash": "16188335195308615468"
+            }
+          },
+          "parameters": {
+            "rg_name": {
+              "type": "string"
+            },
+            "depscrpt_name": {
+              "type": "string"
+            },
+            "apim_name": {
+              "type": "string"
+            },
+            "sttapp_name_blazor": {
+              "type": "string"
+            },
+            "sttapp_name_react": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2018-11-30",
+              "name": "[format('spn-{0}', parameters('depscrpt_name'))]",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "name": "[guid(resourceGroup().id, 'contributor')]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('spn-{0}', parameters('depscrpt_name')))).principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('spn-{0}', parameters('depscrpt_name')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "[format('depscrpt-{0}', parameters('depscrpt_name'))]",
+              "location": "[parameters('location')]",
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('spn-{0}', parameters('depscrpt_name'))))]": {}
+                }
+              },
+              "properties": {
+                "azCliVersion": "2.33.1",
+                "containerSettings": {
+                  "containerGroupName": "[format('contgrp-{0}', parameters('depscrpt_name'))]"
+                },
+                "environmentVariables": [
+                  {
+                    "name": "RESOURCE_GROUP_NAME",
+                    "value": "[parameters('rg_name')]"
+                  },
+                  {
+                    "name": "APIM_NAME",
+                    "value": "[parameters('apim_name')]"
+                  },
+                  {
+                    "name": "STTAPP_NAME_BLAZOR",
+                    "value": "[parameters('sttapp_name_blazor')]"
+                  },
+                  {
+                    "name": "STTAPP_NAME_REACT",
+                    "value": "[parameters('sttapp_name_react')]"
+                  }
+                ],
+                "primaryScriptUri": "https://raw.githubusercontent.com/devrel-kr/nhn-toast-notification-service-custom-connector/main/infra/setup-apim.sh",
+                "cleanupPreference": "OnExpiration",
+                "retentionInterval": "P1D"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Authorization/roleAssignments', guid(resourceGroup().id, 'contributor'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('spn-{0}', parameters('depscrpt_name')))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('rg_name'))), 'Microsoft.Resources/deployments', 'apimservicedeployment')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('rg_name'))), 'Microsoft.Resources/deployments', 'sttapp_blazor')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}', parameters('rg_name'))), 'Microsoft.Resources/deployments', 'sttapp_react')]"
+      ]
+    }
+  ]
+}
