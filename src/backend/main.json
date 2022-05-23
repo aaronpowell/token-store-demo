@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "6802065965031389749"
+      "templateHash": "2211143239600488543"
     }
   },
   "parameters": {
@@ -26,8 +26,7 @@
   "variables": {
     "apim_name": "[parameters('rg_name')]",
     "sttapp_name_blazor": "[format('{0}-blazor', parameters('rg_name'))]",
-    "sttapp_name_react": "[format('{0}-react', parameters('rg_name'))]",
-    "depscrpt_name": "[parameters('rg_name')]"
+    "sttapp_name_react": "[format('{0}-react', parameters('rg_name'))]"
   },
   "resources": [
     {

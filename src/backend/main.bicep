@@ -8,7 +8,6 @@ param location string = 'westcentralus'
 var apim_name = rg_name
 var sttapp_name_blazor = '${rg_name}-blazor'
 var sttapp_name_react = '${rg_name}-react'
-var depscrpt_name = rg_name
 
 resource resourcegroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${rg_name}'
@@ -41,21 +40,3 @@ module sttapp_react './sttapp.bicep' = {
     location: 'centralus'
   }
 }
-
-// module depscrpt './depscrpt.bicep' = {
-//   scope: resourcegroup
-//   name: 'deploymentscript'
-//   dependsOn: [
-//     apim
-//     sttapp_blazor
-//     sttapp_react
-//     ]
-//   params: {
-//     rg_name: rg_name
-//     depscrpt_name: depscrpt_name
-//     apim_name: apim_name
-//     sttapp_name_blazor: sttapp_name_blazor
-//     sttapp_name_react: sttapp_name_react
-//     location: location
-//   }
-// }
