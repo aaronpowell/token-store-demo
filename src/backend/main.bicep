@@ -1,4 +1,3 @@
-
 targetScope = 'subscription'
 
 param rg_name string 
