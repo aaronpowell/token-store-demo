@@ -101,9 +101,9 @@ jobs:
       - name: Update GitHub secrets
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          # gh auth login --with-token <<< $GITHUB_TOKEN
+          gh auth login --with-token <<< $GH_TOKEN
           gh auth status
           gh secret set AZURE_RESOURCE_NAME --body ${{ github.event.inputs.resource_name }} --repo ${{ github.repository }}
 
