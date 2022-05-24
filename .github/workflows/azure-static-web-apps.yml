@@ -93,9 +93,23 @@ jobs:
           output_location: "dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
+  update_gh_secrets:
+    name: Update GitHub secrets
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update GitHub secrets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh secret set AZURE_RESOURCE_NAME --body ${{ github.event.inputs.resource_name }} --repo ${{ github.repository }}
+
   call_build_and_deploy_blazor:
     uses: ./.github/workflows/deploy-sttapp.yml
     if: github.event_name == 'workflow_dispatch'
+    needs:
+      - update_gh_secrets
     with:
       app_type: blazor
       resource_name: ${{ github.event.inputs.resource_name }}
@@ -108,6 +122,8 @@ jobs:
   call_build_and_deploy_react:
     uses: ./.github/workflows/deploy-sttapp.yml
     if: github.event_name == 'workflow_dispatch'
+    needs:
+      - update_gh_secrets
     with:
       app_type: react
       resource_name: ${{ github.event.inputs.resource_name }}

@@ -63,8 +63,6 @@ jobs:
           subscription_key=$(az rest --method post --uri $apim_secret_uri\?api-version=$api_version | jq '.primaryKey' -r)
           apim_endpoint=$gateway_url/dropbox-demo/token\?subscription-key=$subscription_key
 
-          echo $apim_endpoint
-
           echo "::add-mask::$apim_endpoint"
           echo "APIM_ENDPOINT=$apim_endpoint" >> $GITHUB_ENV
 
