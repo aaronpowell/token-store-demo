@@ -101,7 +101,7 @@ jobs:
       - name: Login to GH CLI
         shell: bash
         run: |
-          gh auth login --with-token <<< ${{ secrets.GH_TOKEN }}
+          gh auth login --with-token <<< ${{ secrets.GH_PAT }}
           gh auth status
 
       - name: Update GitHub secrets
