@@ -11,8 +11,6 @@ on:
 jobs:
   call_build_and_deploy_blazor:
     uses: ./.github/workflows/deploy-sttapp.yml
-    needs:
-      - update_gh_secrets
     with:
       app_type: blazor
       resource_name: ${{ github.event.inputs.resource_name }}
@@ -24,8 +22,6 @@ jobs:
 
   call_build_and_deploy_react:
     uses: ./.github/workflows/deploy-sttapp.yml
-    needs:
-      - update_gh_secrets
     with:
       app_type: react
       resource_name: ${{ github.event.inputs.resource_name }}
