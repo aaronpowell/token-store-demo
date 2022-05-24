@@ -7,6 +7,11 @@ on:
         type: string
         required: true
         description: Type of ASWA
+      resource_name:
+        type: string
+        required: false
+        description: Type of ASWA
+        default: ''
       app_location:
         type: string
         required: true
@@ -32,12 +37,18 @@ jobs:
     name: Build and Deploy SWA app
     runs-on: ubuntu-latest
 
-    env:
-      RG_NAME: 'rg-${{ secrets.AZURE_RESOURCE_NAME }}'
-      APIM_SERVICE_NAME: 'apim-${{ secrets.AZURE_RESOURCE_NAME }}'
-      SWA_NAME: 'sttapp-${{ secrets.AZURE_RESOURCE_NAME }}-${{ inputs.app_type }}'
-
     steps:
+      - name: Set environment variables
+        shell: pwsh
+        run: |
+          $rg_name = (${{ inputs.resource_name }} -ne "") ? "rg-${{ inputs.resource_name }}" : "rg-${{ secrets.AZURE_RESOURCE_NAME }}"
+          $apim_service_name = (${{ inputs.resource_name }} -ne "") ? "apim-${{ inputs.resource_name }}" : "apim-${{ secrets.AZURE_RESOURCE_NAME }}"
+          $swa_name = (${{ inputs.resource_name }} -ne "") ? "sttapp-${{ inputs.resource_name }}-${{ inputs.app_type }}" : "sttapp-${{ secrets.AZURE_RESOURCE_NAME }}-${{ inputs.app_type }}"
+
+          echo "RG_NAME=$rg_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "APIM_SERVICE_NAME=$apim_service_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "SWA_NAME=$swa_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+
       - name: Checkout codes
         uses: actions/checkout@v2
         with:
