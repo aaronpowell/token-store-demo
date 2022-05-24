@@ -15,7 +15,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     with:
       app_type: blazor
-      app_location: src/frontend/blazor
+      app_location: 'src/frontend/blazor'
       api_location: ''
       output_location: ''
       skip_app_build: true
@@ -26,7 +26,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     with:
       app_type: react
-      app_location: src/frontend/typescript
+      app_location: 'src/frontend/typescript'
       api_location: ''
       output_location: 'dist'
       skip_app_build: false
