@@ -14,7 +14,7 @@ jobs:
     with:
       app_type: blazor
       resource_name: ${{ github.event.inputs.resource_name }}
-      app_location: src/frontend/blazor/wwwroot
+      app_location: src/frontend/blazor
       api_location: ''
       output_location: ''
       skip_app_build: true
