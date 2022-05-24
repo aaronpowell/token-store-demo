@@ -39,7 +39,7 @@ jobs:
     env:
       RG_NAME: 'rg-${{ inputs.resource_name }}'
       APIM_SERVICE_NAME: 'apim-${{ inputs.resource_name }}'
-      SWA_NAME: 'sttapp-${{ inputs.resource_name }}'
+      SWA_NAME: 'sttapp-${{ inputs.resource_name }}-${{ inputs.app_type }}'
 
     steps:
       - name: Checkout codes
