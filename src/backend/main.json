@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "2211143239600488543"
+      "templateHash": "214203136993974210"
     }
   },
   "parameters": {
@@ -60,7 +60,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.6.18.56646",
-              "templateHash": "11433018568260890543"
+              "templateHash": "15510120656201893903"
             }
           },
           "parameters": {
@@ -73,7 +73,7 @@
             }
           },
           "variables": {
-            "operation_token_policy": "<policies>\r\n<inbound>\r\n    <base />\r\n    <get-authorization-context provider-id=\"dropbox-demo\" authorization-id=\"auth\" context-variable-name=\"auth-context\" ignore-error=\"false\" identity-type=\"managed\" />\r\n    <return-response>\r\n        <set-body>@(((Authorization)context.Variables.GetValueOrDefault(&quot;auth-context&quot;))?.AccessToken)</set-body>\r\n    </return-response>\r\n</inbound>\r\n<backend>\r\n    <base />\r\n</backend>\r\n<outbound>\r\n    <base />\r\n</outbound>\r\n<on-error>\r\n    <base />\r\n</on-error>\r\n</policies>"
+            "operation_token_policy": "<policies>\n<inbound>\n    <base />\n    <get-authorization-context provider-id=\"dropbox-demo\" authorization-id=\"auth\" context-variable-name=\"auth-context\" ignore-error=\"false\" identity-type=\"managed\" />\n    <return-response>\n        <set-body>@(((Authorization)context.Variables.GetValueOrDefault(&quot;auth-context&quot;))?.AccessToken)</set-body>\n    </return-response>\n</inbound>\n<backend>\n    <base />\n</backend>\n<outbound>\n    <base />\n</outbound>\n<on-error>\n    <base />\n</on-error>\n</policies>"
           },
           "resources": [
             {
