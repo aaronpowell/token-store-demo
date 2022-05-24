@@ -98,13 +98,15 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - name: Login to GH CLI
+        shell: bash
+        run: |
+          gh auth login --with-token <<< ${{ secrets.GH_TOKEN }}
+          gh auth status
+
       - name: Update GitHub secrets
         shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          gh auth login --with-token <<< $GH_TOKEN
-          gh auth status
           gh secret set AZURE_RESOURCE_NAME --body ${{ github.event.inputs.resource_name }} --repo ${{ github.repository }}
 
   call_build_and_deploy_blazor:
