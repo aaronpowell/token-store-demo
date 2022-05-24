@@ -7,10 +7,6 @@ on:
         type: string
         required: true
         description: Type of ASWA
-      resource_name:
-        type: string
-        required: true
-        description: Resource name on Azure
       app_location:
         type: string
         required: true
@@ -37,9 +33,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RG_NAME: 'rg-${{ inputs.resource_name }}'
-      APIM_SERVICE_NAME: 'apim-${{ inputs.resource_name }}'
-      SWA_NAME: 'sttapp-${{ inputs.resource_name }}-${{ inputs.app_type }}'
+      RG_NAME: 'rg-${{ secrets.AZURE_RESOURCE_NAME }}'
+      APIM_SERVICE_NAME: 'apim-${{ secrets.AZURE_RESOURCE_NAME }}'
+      SWA_NAME: 'sttapp-${{ secrets.AZURE_RESOURCE_NAME }}-${{ inputs.app_type }}'
 
     steps:
       - name: Checkout codes
@@ -108,7 +104,6 @@ jobs:
         run: echo "VITE_APIM_ENDPOINT=$APIM_ENDPOINT" >> $GITHUB_ENV
 
       - name: Build And Deploy
-        id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ env.SWA_TOKEN }}

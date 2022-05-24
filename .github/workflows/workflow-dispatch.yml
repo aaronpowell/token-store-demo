@@ -1,0 +1,51 @@
+name: Manual Deploy SWA to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_name:
+        type: string
+        required: true
+        description: Resource name on Azure
+
+jobs:
+  update_gh_secrets:
+    name: Update GitHub secrets
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GH CLI
+        shell: bash
+        run: |
+          gh auth login --with-token <<< ${{ secrets.GH_PAT }}
+
+      - name: Update GitHub secrets
+        shell: bash
+        run: |
+          gh secret set AZURE_RESOURCE_NAME --body ${{ github.event.inputs.resource_name }} --repo ${{ github.repository }}
+
+  call_build_and_deploy_blazor:
+    uses: ./.github/workflows/deploy-sttapp.yml
+    if: github.event_name == 'workflow_dispatch'
+    needs:
+      - update_gh_secrets
+    with:
+      app_type: blazor
+      app_location: src/frontend/blazor/wwwroot
+      api_location: ''
+      output_location: ''
+      skip_app_build: true
+    secrets: inherit
+
+  call_build_and_deploy_react:
+    uses: ./.github/workflows/deploy-sttapp.yml
+    if: github.event_name == 'workflow_dispatch'
+    needs:
+      - update_gh_secrets
+    with:
+      app_type: react
+      app_location: src/frontend/typescript
+      api_location: ''
+      output_location: 'dist'
+      skip_app_build: true
+    secrets: inherit
