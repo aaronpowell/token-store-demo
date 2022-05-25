@@ -1,0 +1,131 @@
+name: Deploy SWA to Azure
+
+on:
+  workflow_call:
+    inputs:
+      app_type:
+        type: string
+        required: true
+        description: Type of ASWA
+      resource_name:
+        type: string
+        required: false
+        description: Type of ASWA
+        default: ''
+      app_location:
+        type: string
+        required: true
+        description: SWA app location
+      api_location:
+        type: string
+        required: false
+        description: SWA API location
+        default: ''
+      output_location:
+        type: string
+        required: false
+        description: SWA app artifact location
+        default: ''
+      skip_app_build:
+        type: boolean
+        required: false
+        description: Value indicating wether to build app within Oryx or not
+        default: false
+
+jobs:
+  build_and_deploy:
+    name: Build and Deploy SWA app
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set environment variables
+        shell: pwsh
+        run: |
+          $rg_name = ("${{ inputs.resource_name }}" -ne "") ? "rg-${{ inputs.resource_name }}" : "rg-${{ secrets.AZURE_RESOURCE_NAME }}"
+          $apim_service_name = ("${{ inputs.resource_name }}" -ne "") ? "apim-${{ inputs.resource_name }}" : "apim-${{ secrets.AZURE_RESOURCE_NAME }}"
+          $swa_name = ("${{ inputs.resource_name }}" -ne "") ? "sttapp-${{ inputs.resource_name }}-${{ inputs.app_type }}" : "sttapp-${{ secrets.AZURE_RESOURCE_NAME }}-${{ inputs.app_type }}"
+          $app_location = ("${{ inputs.app_type }}" -eq "blazor") ? "${{ inputs.app_location }}/bin/Release/net6.0/publish/wwwroot" : "${{ inputs.app_location }}"
+
+          echo "RG_NAME=$rg_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "APIM_SERVICE_NAME=$apim_service_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "SWA_NAME=$swa_name" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "APP_LOCATION=$app_location" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf-8 -Append
+
+      - name: Checkout codes
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Login to Azure
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get APIM endpoint
+        shell: bash
+        run: |
+          subscription_id=$(az account show --query "id" -o tsv)
+
+          apim_secret_uri=/subscriptions/$subscription_id/resourceGroups/$RG_NAME/providers/Microsoft.ApiManagement/service/$APIM_SERVICE_NAME/subscriptions/master/listSecrets
+          api_version=2021-08-01
+          gateway_url=$(az apim show -g $RG_NAME -n $APIM_SERVICE_NAME --query "gatewayUrl" -o tsv)
+          subscription_key=$(az rest --method post --uri $apim_secret_uri\?api-version=$api_version | jq '.primaryKey' -r)
+          apim_endpoint=$gateway_url/dropbox-demo/token\?subscription-key=$subscription_key
+
+          echo "::add-mask::$apim_endpoint"
+          echo "APIM_ENDPOINT=$apim_endpoint" >> $GITHUB_ENV
+
+      - name: Get SWA token
+        shell: bash
+        run: |
+          swa_token=$(az staticwebapp secrets list -g $RG_NAME -n $SWA_NAME --query "properties.apiKey" -o tsv)
+
+          echo "::add-mask::$swa_token"
+          echo "SWA_TOKEN=$swa_token" >> $GITHUB_ENV
+
+      - name: Setup .NET Core SDK
+        if: inputs.app_type == 'blazor'
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "6.x"
+
+      - name: Update appsettings.json
+        if: inputs.app_type == 'blazor'
+        shell: pwsh
+        run: |
+          pushd ${{ inputs.app_location }}/wwwroot
+
+          $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
+          $appsettings.APIM_Endpoint = "$APIM_ENDPOINT"
+          $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
+
+          popd
+
+      - name: Build and publish Blazor WASM app
+        if: inputs.app_type == 'blazor'
+        shell: bash
+        run: |
+          pushd "${{ inputs.app_location }}"
+
+          dotnet build . -c Release
+          dotnet publish . -c Release
+
+          popd
+
+      - name: Remap environment variables
+        if: inputs.app_type == 'react'
+        run: echo "VITE_APIM_ENDPOINT=$APIM_ENDPOINT" >> $GITHUB_ENV
+
+      - name: Build And Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ env.SWA_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          action: "upload"
+          skip_app_build: ${{ inputs.skip_app_build }}
+          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+          app_location: "${{ env.APP_LOCATION }}" # App source code path
+          api_location: "${{ inputs.api_location }}" # Api source code path - optional
+          output_location: "${{ inputs.output_location }}" # Built app content directory - optional
+          ###### End of Repository/Build Configurations ######
