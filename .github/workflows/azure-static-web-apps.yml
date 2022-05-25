@@ -1,4 +1,4 @@
-name: Azure Static Web Apps CI/CD
+name: CI/CD Deploy to Azure
 
 on:
   push:
@@ -10,96 +10,38 @@ on:
       - main
 
 jobs:
-  build_and_deploy_blazor:
+  call_build_and_deploy_blazor:
+    uses: ./.github/workflows/deploy-sttapp.yml
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy Blazor app
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
+    with:
+      app_type: blazor
+      app_location: 'src/frontend/blazor'
+      api_location: ''
+      output_location: ''
+      skip_app_build: true
+    secrets: inherit
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "6.x"
-
-      - name: Update appsettings.json
-        shell: pwsh
-        run: |
-          pushd "src/frontend/blazor/wwwroot"
-
-          $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
-          $appsettings.APIM_Endpoint = "${{ secrets.APIM_ENDPOINT }}"
-          $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
-
-          popd
-
-      - name: Build and publish Blazor WASM app
-        shell: bash
-        run: |
-          pushd "src/frontend/blazor"
-
-          dotnet build . -c Release
-          dotnet publish . -c Release
-
-          popd
-
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_POND_0421E0A1E }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-          action: "upload"
-          skip_app_build: true
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "src/frontend/blazor/bin/Release/net6.0/publish/wwwroot" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
-
-  build_and_deploy_react:
+  call_build_and_deploy_react:
+    uses: ./.github/workflows/deploy-sttapp.yml
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
-    name: Build and Deploy React app
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
+    with:
+      app_type: react
+      app_location: 'src/frontend/typescript'
+      api_location: ''
+      output_location: 'dist'
+      skip_app_build: false
+    secrets: inherit
 
-      - run: echo "VITE_APIM_ENDPOINT=${{ secrets.APIM_ENDPOINT }}" >> $GITHUB_ENV
-        name: Remap environment variables
-
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_TOKEN_REACT }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
-          action: "upload"
-          skip_app_build: false
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "src/frontend/typescript" # App source code path
-          api_location: "" # Api source code path - optional
-          output_location: "dist" # Built app content directory - optional
-          ###### End of Repository/Build Configurations ######
-
-  close_pull_request_job:
+  call_close_pr_blazor:
+    uses: ./.github/workflows/close-pr.yml
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Close Pull Request Job
-    steps:
-      - name: Close Pull Request - Blazor
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WONDERFUL_POND_0421E0A1E }}
-          action: "close"
+    with:
+      app_type: blazor
+    secrets: inherit
 
-      - name: Close Pull Request - React
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_TOKEN_REACT }}
-          action: "close"
+  call_close_pr_react:
+    uses: ./.github/workflows/close-pr.yml
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    with:
+      app_type: react
+    secrets: inherit
