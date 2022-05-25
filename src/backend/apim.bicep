@@ -1,5 +1,4 @@
 
-// create the APIM name
 param apim_name string
 param location string = resourceGroup().location 
 
@@ -9,8 +8,8 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: apim_name
   location: location
   sku: {
-    name: 'Consumption'
-    capacity: 0
+    name: 'Developer'
+    capacity: 1
   }
   properties: {
     publisherName: 'John Doe'
