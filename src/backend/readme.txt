@@ -14,7 +14,7 @@ Requirements
     az deployment sub create -n apimdeployment -l westcentralus -f main.bicep -p apim_name=[APIM_SERVICENAME] rg_name=[RESOURCEGROUP_NAME] location=[AZURE_REGION]
 
 
-3. Create an application at https://www.dropbox.com/developers using https://logic-eastus2euap-001.consent.azure-apihub.net/redirect as redirecturl 
+3. Create an application at https://www.dropbox.com/developers using  https://authorization-manager.consent.azure-apim.net/redirect/apim/[APIM_SERVICENAME] as redirecturl 
 
 3. Create Authorizations configuration in API Management
     .\authorizations.ps1 -Subscription [SUBSCRIPTION_ID] -Resourcegroup [RESOURCE_GROUP] -ApimServiceName [APIM_SERVICENAME] -ClientId [DROPBOX_CLIENTID] -ClientSecret [DROPBOX_CLIENT_SECRET] 
