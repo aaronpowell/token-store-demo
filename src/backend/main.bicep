@@ -1,16 +1,16 @@
 targetScope = 'subscription'
 
-@description('Resource group name')
-param rg_name string 
+@description('Name')
+param name string 
 @description('Resource group location. Default to "westcentralus"')
 param location string = 'westcentralus'
 
-var apim_name = rg_name
-var sttapp_name_blazor = '${rg_name}-blazor'
-var sttapp_name_react = '${rg_name}-react'
+var apim_name = '${name}-apim'
+var sttapp_name_blazor = '${name}-blazor'
+var sttapp_name_react = '${name}-react'
 
 resource resourcegroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: 'rg-${rg_name}'
+  name: 'rg-${name}'
   location: location
 }
 
