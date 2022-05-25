@@ -1,0 +1,38 @@
+name: Close Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      app_type:
+        type: string
+        required: true
+        description: Type of ASWA
+
+jobs:
+  close_pr:
+    name: Close PR
+    runs-on: ubuntu-latest
+
+    env:
+      RG_NAME: 'rg-${{ secrets.AZURE_RESOURCE_NAME }}'
+      SWA_NAME: 'sttapp-${{ secrets.AZURE_RESOURCE_NAME }}-${{ inputs.app_type }}'
+
+    steps:
+      - name: Login to Azure
+        uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get SWA token
+        shell: bash
+        run: |
+          swa_token=$(az staticwebapp secrets list -g $RG_NAME -n $SWA_NAME --query "properties.apiKey" -o tsv)
+
+          echo "::add-mask::$swa_token"
+          echo "SWA_TOKEN=$swa_token" >> $GITHUB_ENV
+
+      - name: Close PR
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ env.SWA_TOKEN }}
+          action: "close"
