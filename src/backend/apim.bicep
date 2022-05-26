@@ -1,6 +1,5 @@
 param apim_name string
-param location string = resourceGroup().location 
-
+param location string = resourceGroup().location
 
 // APIM instance
 resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
@@ -19,6 +18,36 @@ resource apim 'Microsoft.ApiManagement/service@2021-08-01' = {
   }
 }
 
+// Service Policy
+resource apim_policy 'Microsoft.ApiManagement/service/policies@2021-08-01' = {
+  parent: apim
+  name: 'policy'
+  properties: {
+    value: service_policy
+    format: 'xml'
+  }
+}
+
+// Service Policy Definition
+var service_policy = '''
+<policies>
+    <inbound>
+        <cors allow-credentials="false">
+            <allowed-origins>
+                <origin>*</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>GET</method>
+                <method>POST</method>
+            </allowed-methods>
+        </cors>
+    </inbound>
+    <backend>
+        <forward-request />
+    </backend>
+    <outbound />
+    <on-error />
+</policies>'''
 
 // API
 resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
@@ -45,7 +74,7 @@ resource api_gettoken 'Microsoft.ApiManagement/service/apis/operations@2021-08-0
   }
 }
 
-// Policy
+// Operation Policy
 resource api_gettoken_policy 'Microsoft.ApiManagement/service/apis/operations/policies@2021-08-01' = {
   parent: api_gettoken
   name: 'policy'
@@ -55,7 +84,7 @@ resource api_gettoken_policy 'Microsoft.ApiManagement/service/apis/operations/po
   }
 }
 
-// Policy definition
+// Operation Token Policy Definition
 var operation_token_policy = '''<policies>
 <inbound>
     <base />
@@ -74,5 +103,3 @@ var operation_token_policy = '''<policies>
     <base />
 </on-error>
 </policies>'''
-
-
