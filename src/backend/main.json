@@ -5,14 +5,14 @@
     "_generator": {
       "name": "bicep",
       "version": "0.6.18.56646",
-      "templateHash": "214203136993974210"
+      "templateHash": "16677244721671329162"
     }
   },
   "parameters": {
-    "rg_name": {
+    "name": {
       "type": "string",
       "metadata": {
-        "description": "Resource group name"
+        "description": "Name"
       }
     },
     "location": {
@@ -24,22 +24,22 @@
     }
   },
   "variables": {
-    "apim_name": "[parameters('rg_name')]",
-    "sttapp_name_blazor": "[format('{0}-blazor', parameters('rg_name'))]",
-    "sttapp_name_react": "[format('{0}-react', parameters('rg_name'))]"
+    "apim_name": "[format('{0}-apim', parameters('name'))]",
+    "sttapp_name_blazor": "[format('{0}-blazor', parameters('name'))]",
+    "sttapp_name_react": "[format('{0}-react', parameters('name'))]"
   },
   "resources": [
     {
       "type": "Microsoft.Resources/resourceGroups",
       "apiVersion": "2021-04-01",
-      "name": "[format('rg-{0}', parameters('rg_name'))]",
+      "name": "[format('rg-{0}', parameters('name'))]",
       "location": "[parameters('location')]"
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "apimservicedeployment",
-      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "resourceGroup": "[format('rg-{0}', parameters('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -60,7 +60,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.6.18.56646",
-              "templateHash": "15510120656201893903"
+              "templateHash": "618598464813831316"
             }
           },
           "parameters": {
@@ -73,17 +73,18 @@
             }
           },
           "variables": {
-            "operation_token_policy": "<policies>\n<inbound>\n    <base />\n    <get-authorization-context provider-id=\"dropbox-demo\" authorization-id=\"auth\" context-variable-name=\"auth-context\" ignore-error=\"false\" identity-type=\"managed\" />\n    <return-response>\n        <set-body>@(((Authorization)context.Variables.GetValueOrDefault(&quot;auth-context&quot;))?.AccessToken)</set-body>\n    </return-response>\n</inbound>\n<backend>\n    <base />\n</backend>\n<outbound>\n    <base />\n</outbound>\n<on-error>\n    <base />\n</on-error>\n</policies>"
+            "service_policy": "<policies>\r\n    <inbound>\r\n        <cors allow-credentials=\"false\">\r\n            <allowed-origins>\r\n                <origin>*</origin>\r\n            </allowed-origins>\r\n            <allowed-methods>\r\n                <method>GET</method>\r\n                <method>POST</method>\r\n            </allowed-methods>\r\n        </cors>\r\n    </inbound>\r\n    <backend>\r\n        <forward-request />\r\n    </backend>\r\n    <outbound />\r\n    <on-error />\r\n</policies>",
+            "operation_token_policy": "<policies>\r\n<inbound>\r\n    <base />\r\n    <get-authorization-context provider-id=\"dropbox-demo\" authorization-id=\"auth\" context-variable-name=\"auth-context\" ignore-error=\"false\" identity-type=\"managed\" />\r\n    <return-response>\r\n        <set-body>@(((Authorization)context.Variables.GetValueOrDefault(&quot;auth-context&quot;))?.AccessToken)</set-body>\r\n    </return-response>\r\n</inbound>\r\n<backend>\r\n    <base />\r\n</backend>\r\n<outbound>\r\n    <base />\r\n</outbound>\r\n<on-error>\r\n    <base />\r\n</on-error>\r\n</policies>"
           },
           "resources": [
             {
               "type": "Microsoft.ApiManagement/service",
               "apiVersion": "2021-08-01",
-              "name": "[format('apim-{0}', parameters('apim_name'))]",
+              "name": "[parameters('apim_name')]",
               "location": "[parameters('location')]",
               "sku": {
-                "name": "Consumption",
-                "capacity": 0
+                "name": "Developer",
+                "capacity": 1
               },
               "properties": {
                 "publisherName": "John Doe",
@@ -94,9 +95,21 @@
               }
             },
             {
+              "type": "Microsoft.ApiManagement/service/policies",
+              "apiVersion": "2021-08-01",
+              "name": "[format('{0}/{1}', parameters('apim_name'), 'policy')]",
+              "properties": {
+                "value": "[variables('service_policy')]",
+                "format": "xml"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apim_name'))]"
+              ]
+            },
+            {
               "type": "Microsoft.ApiManagement/service/apis",
               "apiVersion": "2021-08-01",
-              "name": "[format('{0}/{1}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo')]",
+              "name": "[format('{0}/{1}', parameters('apim_name'), 'dropbox-demo')]",
               "properties": {
                 "serviceUrl": "https://api.dropboxapi.com",
                 "path": "dropbox-demo",
@@ -106,46 +119,46 @@
                 ]
               },
               "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service', format('apim-{0}', parameters('apim_name')))]"
+                "[resourceId('Microsoft.ApiManagement/service', parameters('apim_name'))]"
               ]
             },
             {
               "type": "Microsoft.ApiManagement/service/apis/operations",
               "apiVersion": "2021-08-01",
-              "name": "[format('{0}/{1}/{2}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken')]",
+              "name": "[format('{0}/{1}/{2}', parameters('apim_name'), 'dropbox-demo', 'gettoken')]",
               "properties": {
                 "method": "GET",
                 "urlTemplate": "/token",
                 "displayName": "gettoken"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis', format('apim-{0}', parameters('apim_name')), 'dropbox-demo')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apim_name'), 'dropbox-demo')]"
               ]
             },
             {
               "type": "Microsoft.ApiManagement/service/apis/operations/policies",
               "apiVersion": "2021-08-01",
-              "name": "[format('{0}/{1}/{2}/{3}', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken', 'policy')]",
+              "name": "[format('{0}/{1}/{2}/{3}', parameters('apim_name'), 'dropbox-demo', 'gettoken', 'policy')]",
               "properties": {
                 "value": "[variables('operation_token_policy')]",
                 "format": "xml"
               },
               "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service/apis/operations', format('apim-{0}', parameters('apim_name')), 'dropbox-demo', 'gettoken')]"
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', parameters('apim_name'), 'dropbox-demo', 'gettoken')]"
               ]
             }
           ]
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('name')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "sttapp_blazor",
-      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "resourceGroup": "[format('rg-{0}', parameters('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -166,7 +179,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.6.18.56646",
-              "templateHash": "7939280103958111884"
+              "templateHash": "12394882855554855017"
             }
           },
           "parameters": {
@@ -182,7 +195,7 @@
             {
               "type": "Microsoft.Web/staticSites",
               "apiVersion": "2021-02-01",
-              "name": "[format('sttapp-{0}', parameters('sttapp_name'))]",
+              "name": "[format('{0}-swa', parameters('sttapp_name'))]",
               "location": "[parameters('location')]",
               "sku": {
                 "name": "Free"
@@ -196,14 +209,14 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('name')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "sttapp_react",
-      "resourceGroup": "[format('rg-{0}', parameters('rg_name'))]",
+      "resourceGroup": "[format('rg-{0}', parameters('name'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -224,7 +237,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.6.18.56646",
-              "templateHash": "7939280103958111884"
+              "templateHash": "12394882855554855017"
             }
           },
           "parameters": {
@@ -240,7 +253,7 @@
             {
               "type": "Microsoft.Web/staticSites",
               "apiVersion": "2021-02-01",
-              "name": "[format('sttapp-{0}', parameters('sttapp_name'))]",
+              "name": "[format('{0}-swa', parameters('sttapp_name'))]",
               "location": "[parameters('location')]",
               "sku": {
                 "name": "Free"
@@ -254,7 +267,7 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('rg_name')))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', format('rg-{0}', parameters('name')))]"
       ]
     }
   ]
