@@ -4,7 +4,7 @@ param location string = 'centralus'
 
 
 resource sttapp 'Microsoft.Web/staticSites@2021-02-01' = {
-  name: 'sttapp-${sttapp_name}'
+  name: '${sttapp_name}-swa'
   location: location
   sku: {
     name: 'Free'
