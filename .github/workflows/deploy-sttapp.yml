@@ -96,7 +96,7 @@ jobs:
           pushd ${{ inputs.app_location }}/wwwroot
 
           $appsettings = Get-Content -Path ./appsettings.sample.json | ConvertFrom-Json
-          $appsettings.APIM_Endpoint = "$APIM_ENDPOINT"
+          $appsettings.APIM_Endpoint = "${{ env.APIM_ENDPOINT }}"
           $appsettings | ConvertTo-Json -Depth 100 | Out-File -Path ./appsettings.json -Force
 
           Get-Content -Path ./appsettings.json
@@ -116,7 +116,10 @@ jobs:
 
       - name: Remap environment variables
         if: inputs.app_type == 'react'
-        run: echo "VITE_APIM_ENDPOINT=$APIM_ENDPOINT" >> $GITHUB_ENV
+        shell: bash
+        run: |
+          echo "VITE_APIM_ENDPOINT=$APIM_ENDPOINT" >> $GITHUB_ENV
+          echo $VITE_APIM_ENDPOINT
 
       - name: Build And Deploy
         uses: Azure/static-web-apps-deploy@v1
